@@ -70,10 +70,10 @@ app.post('/refresh-token', async (req, reply) => {
   }
 })
 
-app.listen(3000, (err, address) => {
-  if (err) {
-    console.error(err)
-    process.exit(1)
-  }
-  console.log(`Server listening at ${address}`)
+app.listen({
+  port: 3000,
+  host: '0.0.0.0',
+  listenTextResolver: (address) => {
+    return `Listening on http://${address}`
+  },
 })
