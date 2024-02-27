@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "./api";
 
 export default function Page() {
   const navigate = useNavigate();
@@ -9,7 +10,17 @@ export default function Page() {
   });
 
   async function signIn() {
-    navigate("/");
+    try {
+      const { data } = await api.post("/auth", form);
+      if (!data) {
+        return;
+      }
+
+      api.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
+      navigate("/");
+    } catch (err) {
+      alert("Unauthorized");
+    }
   }
 
   const onChange =

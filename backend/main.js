@@ -4,13 +4,27 @@ import cookie from '@fastify/cookie'
 import jwt from 'jsonwebtoken'
 import crypto, { randomBytes } from 'node:crypto'
 
-const app = Fastify()
-
-app.register(cors, { origin: '*', credentials: true })
+const ONE_HOUR = 60 * 60 * 1000
+const app = Fastify({ logger: true })
+app.register(cors, { origin: ['http://localhost:5173'], credentials: true })
 app.register(cookie, { hook: 'onRequest', secret: 'my-secret' })
 
-app.get('/', (req, reply) => {
+async function auth(req, reply) {
+  try {
+    const token = req.headers.authorization.split(' ')[1]
+    const decoded = await jwt.verify(token, 'accesstoken')
+    Object.assign(req, { user: decoded })
+  } catch (err) {
+    reply.status(403).send({ err: 'token.expired' })
+  }
+}
+
+app.get('/', { preHandler: [auth] }, (req, reply) => {
   reply.send({ hello: 'world' })
+})
+
+app.get('/protected', { preHandler: [auth] }, async (req, reply) => {
+  reply.send({ data: 'Hello World Protected' })
 })
 
 app.post('/auth', async (req, reply) => {
@@ -25,23 +39,13 @@ app.post('/auth', async (req, reply) => {
       httpOnly: true,
       path: '/',
       sameSite: 'strict',
-      maxAge: 60 * 60 * 1000, // 1 hour,
+      maxAge: ONE_HOUR,
     })
 
     return reply.send({ token })
   }
 
   reply.send(401)
-})
-
-app.get('/protected', async (req, reply) => {
-  try {
-    const token = req.headers.authorization.split(' ')[1]
-    await jwt.verify(token, 'accesstoken')
-    reply.send({ data: 'Hello World Protected' })
-  } catch (err) {
-    reply.status(403).send({ err: err.message, message: 'token.expired' })
-  }
 })
 
 app.post('/refresh-token', async (req, reply) => {
@@ -58,12 +62,12 @@ app.post('/refresh-token', async (req, reply) => {
       httpOnly: true,
       path: '/',
       sameSite: 'strict',
-      maxAge: 60 * 60 * 1000, // 1 hour,
+      maxAge: ONE_HOUR,
     })
 
     reply.send({ token: newToken })
   } catch (err) {
-    reply.status(403).send({ err: err.message, message: 'token.expired' })
+    reply.status(403).send()
   }
 })
 
