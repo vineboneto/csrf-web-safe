@@ -2,7 +2,6 @@ import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import cookie from '@fastify/cookie'
 import jwt from 'jsonwebtoken'
-import crypto, { randomBytes } from 'node:crypto'
 
 const ONE_HOUR = 60 * 60 * 1000
 const app = Fastify({ logger: true })
