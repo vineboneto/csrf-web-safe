@@ -29,21 +29,17 @@ api.interceptors.response.use(
     const originalConfig = error.config;
     if (tokenExpired) {
       if (!isRefreshing) {
-        console.log("Entrei aqui");
         isRefreshing = true;
 
         api
           .post("/refresh-token")
-          .then(({ data }) => {
-            const { token } = data;
-
+          .then(({ data: { token } }) => {
             api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
             failedRequestsQueue.forEach((request) => request.onSuccess(token));
             failedRequestsQueue = [];
           })
           .catch((err) => {
-            console.log({ err });
             failedRequestsQueue?.forEach((request) => request.onFailure(err));
             failedRequestsQueue = [];
           })
