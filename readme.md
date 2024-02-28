@@ -1,5 +1,5 @@
-# CSRF WEB Safe
+# XSS WEB Safe
 
 ## Descrição
 
-Projeto com intuito didático para propor uma solução de segurança para ataques CSRF.
+Projeto com intuito didático para propor uma solução de segurança para ataques XSS.
